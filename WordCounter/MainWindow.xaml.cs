@@ -28,6 +28,9 @@ namespace WordCounter
             //DebugInfoDisplay.Text = "sender Type:" + sender.GetType().ToString();
         }
 
+        /// <summary>
+        /// Count the number of words in a string
+        /// </summary>
         private int CountWords(string s)
         {
             int count = 0;
