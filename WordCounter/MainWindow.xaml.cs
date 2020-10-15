@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 
 
 namespace WordCounter
@@ -14,6 +15,8 @@ namespace WordCounter
     public partial class MainWindow : Window
     {
         private const string XamlExtension = ".xaml";
+        private const string RtfExtension = ".rtf";
+        private const string FDFilter = "Xaml Package (*.xaml)|*.xaml|Rich Text Format (*.rtf)|*.rtf";
 
         public MainWindow()
         {
@@ -70,38 +73,22 @@ namespace WordCounter
         /// <summary>
         /// Save the content of the RichTextBox to a file
         /// </summary>
-        private void SaveText(object sender, RoutedEventArgs e)
+        private void SaveCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string format;
-            SaveFileDialog sfd = new SaveFileDialog
-            {
-                Filter = "Xaml Package Files (*.xaml)|*.xaml"
-            };
+            SaveFileDialog saveFD = new SaveFileDialog { Filter = FDFilter };
 
             // show file dialog, then if a filename is chosen...
-            if (sfd.ShowDialog() == true)
+            if (saveFD.ShowDialog() == true)
             {
                 TextRange range = new TextRange(
                     textEntry.Document.ContentStart,
                     textEntry.Document.ContentEnd
                 );
 
-                // detect file format
-                if (Path.GetExtension(sfd.FileName) == XamlExtension)
-                {
-                    format = DataFormats.XamlPackage;
-                    debugInfoDisplay.Text = "Saved to " + DataFormats.XamlPackage;
-                }
-                else
-                {
-                    format = DataFormats.Rtf;
-                    debugInfoDisplay.Text = "Saved to " + DataFormats.Rtf;
-                }
-
                 // save the content to a file
-                FileStream fs = new FileStream(sfd.FileName, FileMode.Create);
-                range.Save(fs, format);
-                fs.Close();
+                FileStream fStream = new FileStream(saveFD.FileName, FileMode.Create);
+                range.Save(fStream, DetectFileFormat(saveFD.FileName));
+                fStream.Close();
             }
         }
 
@@ -110,40 +97,47 @@ namespace WordCounter
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void LoadText(object sender, RoutedEventArgs e)
+        private void LoadCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             TextRange range;
-            FileStream fs;
-            string format;
-            OpenFileDialog ofd = new OpenFileDialog
-            {
-                Filter = "Xaml Package Files (*.xaml)|*.xaml|Rich Text Format Files (*.rtf)|*.rtf"
-            };
+            FileStream fStream;
+            OpenFileDialog openFD = new OpenFileDialog { Filter = FDFilter };
 
             // show file dialog, then if a file is chosen...
-            if (ofd.ShowDialog() == true)
+            if (openFD.ShowDialog() == true)
             {
                 range = new TextRange(
                     textEntry.Document.ContentStart,
                     textEntry.Document.ContentEnd
                 );
 
-                // detect file format
-                if (Path.GetExtension(ofd.FileName) == XamlExtension)
-                {
-                    format = DataFormats.XamlPackage;
-                    debugInfoDisplay.Text = "Loaded " + DataFormats.XamlPackage;
-                }
-                else
-                {
-                    format = DataFormats.Rtf;
-                    debugInfoDisplay.Text = "Loaded" + DataFormats.Rtf;
-                }
-
                 // load from the file
-                fs = new FileStream(ofd.FileName, FileMode.OpenOrCreate);
-                range.Load(fs, format);
-                fs.Close();
+                fStream = new FileStream(openFD.FileName, FileMode.OpenOrCreate);
+                range.Load(fStream, DetectFileFormat(openFD.FileName));
+                fStream.Close();
+            }
+        }
+
+        /// <summary>
+        /// Returns a string to use as the dataFormat arg to Load/Save the given filename
+        /// </summary>
+        /// <param name="filename">name of the file to be </param>
+        /// <returns type="string">A string that can be used by TextRange.Load or TextRange.Save for its dataFormat</returns>
+        /// <exception cref="ArgumentException"></exception>
+        private string DetectFileFormat(string filename)
+        {
+            switch (Path.GetExtension(filename))
+            {
+                case XamlExtension:
+                    debugInfoDisplay.Text = "Loaded " + DataFormats.XamlPackage;
+                    return DataFormats.XamlPackage;
+
+                case RtfExtension:
+                    debugInfoDisplay.Text = "Loaded" + DataFormats.Rtf;
+                    return DataFormats.Rtf;
+
+                default:
+                    throw new ArgumentException("filename " + filename + " has unsupported extension");
             }
         }
 
