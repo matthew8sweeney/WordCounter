@@ -41,9 +41,10 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Open" Command="ApplicationCommands.Open"/>
                 <MenuItem Header="_Save" Command="ApplicationCommands.Save"/>
-                <MenuItem Header="Save _As" Command="ApplicationCommands.SaveAs"/>
+                <MenuItem Header="Save _As" Command="ApplicationCommands.SaveAs"
+                          InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
-                <MenuItem Header="_Exit" Click="ExitApp"/>
+                <MenuItem Header="_Exit" Click="ExitApp" InputGestureText="Alt+f4"/>
             </MenuItem>
         </Menu>
 

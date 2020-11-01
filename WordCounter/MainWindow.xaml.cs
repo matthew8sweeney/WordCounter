@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 
+#nullable enable
+
 
 namespace WordCounter
 {
@@ -14,11 +16,16 @@ namespace WordCounter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string FDFilter = "WC Xaml Package (*.wcxaml)|*.wcxaml|"
-                                      + "Xaml Package (*.xaml)|*.xaml|"
-                                      + "Rich Text Format (*.rtf)|*.rtf|"
-                                      + "Text Files (*.txt)|*.txt|"
-                                      + "All Files (*.*)|*.*";
+        // filter string given to file dialogs
+        private const string FDFilterStr = "WordCounter Xaml Package (*.wcxaml)|*.wcxaml|"
+                                         + "Xaml Package (*.xaml)|*.xaml|"
+                                         + "Rich Text Format (*.rtf)|*.rtf|"
+                                         + "Text Files (*.txt)|*.txt|"
+                                         + "All Supported Files|*.wcxaml;*.xaml;*.rtf;*.txt|"
+                                         + "All Files (*.*)|*.*";
+
+        // (nullable) string storing the filename of the current file, if applicable
+        private string? CurFilename { get; set; } = null;
 
         public MainWindow()
         {
@@ -79,7 +86,7 @@ namespace WordCounter
         /// <param name="e"></param>
         private void OpenCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            OpenFileDialog openFD = new OpenFileDialog { Filter = FDFilter };
+            OpenFileDialog openFD = new OpenFileDialog { Filter = FDFilterStr };
 
             // show file dialog, then if a file is chosen...
             if (openFD.ShowDialog() == true)
@@ -106,6 +113,9 @@ namespace WordCounter
                 FileStream fStream = new FileStream(filename, FileMode.OpenOrCreate);
                 range.Load(fStream, DetectFileFormat(filename));
                 fStream.Close();
+
+                // update the editor's current file
+                CurFilename = filename;
             }
             catch (ArgumentException argErr)
             {
@@ -132,7 +142,7 @@ namespace WordCounter
             {
                 case ".wcxaml":  // just my own name for this app's Xaml Packages
                 case ".xaml":
-                    // adds debug text onto whatever is already there (from saving cmd)
+                    // adds debug text onto whatever is already there (from saving/loading methods)
                     debugInfoDisplay.Text += " " + DataFormats.XamlPackage + " " + filename;
                     return DataFormats.XamlPackage;
 
@@ -150,36 +160,64 @@ namespace WordCounter
         }
 
         /// <summary>
-        /// Save the content of the RichTextBox to a file
+        /// Implementation for the ApplicationCommands.SaveAs command
         /// </summary>
         private void SaveAsCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveFileDialog saveFD = new SaveFileDialog { Filter = FDFilter };
+            SaveToFileWithDialog();
+        }
 
-            // show file dialog, then if a filename is chosen...
-            if (saveFD.ShowDialog() == true)
+        /// <summary>
+        /// Implementation for the ApplicationCommands.Save command
+        /// </summary>
+        private void SaveCmd_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            // check if the editor has a particular file open
+            if (CurFilename is string curFilenameValue)
             {
-                TextRange range = new TextRange(
-                    textEntry.Document.ContentStart,
-                    textEntry.Document.ContentEnd
-                );
-
-                // save the content to a file
-                debugInfoDisplay.Text = "Save";
-                FileStream fStream = new FileStream(saveFD.FileName, FileMode.Create);
-                range.Save(fStream, DetectFileFormat(saveFD.FileName));
-                fStream.Close();
+                SaveToFile(curFilenameValue);
+            }
+            // otherwise, default to save-as functionality
+            else
+            {
+                SaveToFileWithDialog();
             }
         }
 
         /// <summary>
-        /// Provide a Save-File dialog to save the editor content to a file
+        /// Save the content of the RichTextBox editor to a file chosen via a Save-File dialog
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void SaveCmd_Executed(object sender, ExecutedRoutedEventArgs e)
+        /// <param name="filename"></param>
+        private void SaveToFileWithDialog()
         {
+            SaveFileDialog saveFD = new SaveFileDialog { Filter = FDFilterStr };
 
+            // show file dialog, then if a filename is chosen...
+            if (saveFD.ShowDialog() == true)
+            {
+                SaveToFile(saveFD.FileName);
+            }
+        }
+
+        /// <summary>
+        /// Save the content of the RichTextBox editor to a file with the given name
+        /// </summary>
+        /// <param name="filename"></param>
+        private void SaveToFile(string filename)
+        {
+            TextRange range = new TextRange(
+                textEntry.Document.ContentStart,
+                textEntry.Document.ContentEnd
+            );
+
+            // save the content to a file
+            debugInfoDisplay.Text = "Save";
+            FileStream fStream = new FileStream(filename, FileMode.Create);
+            range.Save(fStream, DetectFileFormat(filename));
+            fStream.Close();
+
+            // update the record of the editor's current file
+            CurFilename = filename;
         }
 
         /// <summary>
