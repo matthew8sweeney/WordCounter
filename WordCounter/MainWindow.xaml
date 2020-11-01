@@ -8,16 +8,20 @@
         Title="WordCounter" MinHeight="260" Width="767" SizeToContent="Manual">
 
     <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open"
+                        Executed="OpenCmd_Executed"/>
         <CommandBinding Command="ApplicationCommands.Save"
                         Executed="SaveCmd_Executed"/>
-        <CommandBinding Command="ApplicationCommands.Open"
-                        Executed="LoadCmd_Executed"/>
+        <CommandBinding Command="ApplicationCommands.SaveAs"
+                        Executed="SaveAsCmd_Executed"/>
     </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Command="ApplicationCommands.Save"
-                    Key="S" Modifiers="Ctrl"/>
         <KeyBinding Command="ApplicationCommands.Open"
                     Key="O" Modifiers="Ctrl"/>
+        <KeyBinding Command="ApplicationCommands.Save"
+                    Key="S" Modifiers="Ctrl"/>
+        <KeyBinding Command="ApplicationCommands.SaveAs"
+                    Key="S" Modifiers="Ctrl+Shift"/>
     </Window.InputBindings>
     
     <Grid>
@@ -37,6 +41,7 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Open" Command="ApplicationCommands.Open"/>
                 <MenuItem Header="_Save" Command="ApplicationCommands.Save"/>
+                <MenuItem Header="Save _As" Command="ApplicationCommands.SaveAs"/>
                 <Separator/>
                 <MenuItem Header="_Exit" Click="ExitApp"/>
             </MenuItem>

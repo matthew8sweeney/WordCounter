@@ -14,9 +14,11 @@ namespace WordCounter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string XamlExtension = ".xaml";
-        private const string RtfExtension = ".rtf";
-        private const string FDFilter = "Xaml Package (*.xaml)|*.xaml|Rich Text Format (*.rtf)|*.rtf";
+        private const string FDFilter = "WC Xaml Package (*.wcxaml)|*.wcxaml|"
+                                      + "Xaml Package (*.xaml)|*.xaml|"
+                                      + "Rich Text Format (*.rtf)|*.rtf|"
+                                      + "Text Files (*.txt)|*.txt|"
+                                      + "All Files (*.*)|*.*";
 
         public MainWindow()
         {
@@ -71,9 +73,86 @@ namespace WordCounter
         }
 
         /// <summary>
+        /// Load content into the RichTextBox editor from a file chosen using an Open-File dialog
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OpenCmd_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            OpenFileDialog openFD = new OpenFileDialog { Filter = FDFilter };
+
+            // show file dialog, then if a file is chosen...
+            if (openFD.ShowDialog() == true)
+            {
+                OpenFile(openFD.FileName);
+            }
+        }
+
+        /// <summary>
+        /// Load content into the RichTextBox editor from a file with the given name
+        /// </summary>
+        /// <param name="filename">Path to the file to open</param>
+        public void OpenFile(string filename)
+        {
+            TextRange range = new TextRange(
+                textEntry.Document.ContentStart,
+                textEntry.Document.ContentEnd
+            );
+
+            try
+            {
+                // load from the file
+                debugInfoDisplay.Text = "Load";
+                FileStream fStream = new FileStream(filename, FileMode.OpenOrCreate);
+                range.Load(fStream, DetectFileFormat(filename));
+                fStream.Close();
+            }
+            catch (ArgumentException argErr)
+            {
+                // invalid/unaccepted filename
+                debugInfoDisplay.Text = "Load failed due to invalid filename";
+                MessageBox.Show(argErr.ToString());
+            }
+            catch (Exception err)
+            {
+                debugInfoDisplay.Text = "Load failed";
+                MessageBox.Show(err.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Returns a string to use as the dataFormat arg to Load/Save the given filename
+        /// </summary>
+        /// <param name="filename">Path to file</param>
+        /// <returns type="string">A string that can be used by TextRange.Load or TextRange.Save for its dataFormat</returns>
+        /// <exception cref="ArgumentException">If the file extension is not supported</exception>
+        private string DetectFileFormat(string filename)
+        {
+            switch (Path.GetExtension(filename))
+            {
+                case ".wcxaml":  // just my own name for this app's Xaml Packages
+                case ".xaml":
+                    // adds debug text onto whatever is already there (from saving cmd)
+                    debugInfoDisplay.Text += " " + DataFormats.XamlPackage + " " + filename;
+                    return DataFormats.XamlPackage;
+
+                case ".rtf":
+                    debugInfoDisplay.Text += " " + DataFormats.Rtf + " " + filename;
+                    return DataFormats.Rtf;
+
+                case ".txt":
+                    debugInfoDisplay.Text += " " + DataFormats.Text + " " + filename;
+                    return DataFormats.Text;
+
+                default:
+                    throw new ArgumentException("filename " + filename + " has unsupported extension");
+            }
+        }
+
+        /// <summary>
         /// Save the content of the RichTextBox to a file
         /// </summary>
-        private void SaveCmd_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void SaveAsCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             SaveFileDialog saveFD = new SaveFileDialog { Filter = FDFilter };
 
@@ -86,6 +165,7 @@ namespace WordCounter
                 );
 
                 // save the content to a file
+                debugInfoDisplay.Text = "Save";
                 FileStream fStream = new FileStream(saveFD.FileName, FileMode.Create);
                 range.Save(fStream, DetectFileFormat(saveFD.FileName));
                 fStream.Close();
@@ -93,52 +173,13 @@ namespace WordCounter
         }
 
         /// <summary>
-        /// Load content into the RichTextBox editor from a file
+        /// Provide a Save-File dialog to save the editor content to a file
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void LoadCmd_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void SaveCmd_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            TextRange range;
-            FileStream fStream;
-            OpenFileDialog openFD = new OpenFileDialog { Filter = FDFilter };
 
-            // show file dialog, then if a file is chosen...
-            if (openFD.ShowDialog() == true)
-            {
-                range = new TextRange(
-                    textEntry.Document.ContentStart,
-                    textEntry.Document.ContentEnd
-                );
-
-                // load from the file
-                fStream = new FileStream(openFD.FileName, FileMode.OpenOrCreate);
-                range.Load(fStream, DetectFileFormat(openFD.FileName));
-                fStream.Close();
-            }
-        }
-
-        /// <summary>
-        /// Returns a string to use as the dataFormat arg to Load/Save the given filename
-        /// </summary>
-        /// <param name="filename">name of the file to be </param>
-        /// <returns type="string">A string that can be used by TextRange.Load or TextRange.Save for its dataFormat</returns>
-        /// <exception cref="ArgumentException"></exception>
-        private string DetectFileFormat(string filename)
-        {
-            switch (Path.GetExtension(filename))
-            {
-                case XamlExtension:
-                    debugInfoDisplay.Text = "Loaded " + DataFormats.XamlPackage;
-                    return DataFormats.XamlPackage;
-
-                case RtfExtension:
-                    debugInfoDisplay.Text = "Loaded" + DataFormats.Rtf;
-                    return DataFormats.Rtf;
-
-                default:
-                    throw new ArgumentException("filename " + filename + " has unsupported extension");
-            }
         }
 
         /// <summary>
