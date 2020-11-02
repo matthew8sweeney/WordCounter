@@ -5,6 +5,18 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>WordCount.ico</ApplicationIcon>
+    <StartupObject></StartupObject>
+    <AssemblyName>WordCounterPlus</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="test_customdict.lex" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\customWords.lex">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
 </Project>
