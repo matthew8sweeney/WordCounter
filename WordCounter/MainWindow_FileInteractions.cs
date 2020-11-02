@@ -97,7 +97,7 @@ namespace WordCounter
         /// Save the content of the RichTextBox editor to a file chosen via a Save-File dialog
         /// </summary>
         /// <param name="filename"></param>
-        private void SaveToFileWithDialog()
+        public void SaveToFileWithDialog()
         {
             SaveFileDialog saveFD = new SaveFileDialog { Filter = FDFilterStr };
 
@@ -112,7 +112,7 @@ namespace WordCounter
         /// Save the content of the RichTextBox editor to a file with the given name
         /// </summary>
         /// <param name="filename"></param>
-        private void SaveToFile(string filename)
+        public void SaveToFile(string filename)
         {
             TextRange range = new TextRange(
                 textEditor.Document.ContentStart,

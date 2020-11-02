@@ -90,17 +90,17 @@ namespace WordCounter
             return count;
         }
 
+        private void MWEditor_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            textEditor.Editor_ContextMenuOpening(sender, e);
+        }
+
         /// <summary>
         /// Exit the application gracefully
         /// </summary>
         private void ExitApp(object sender, RoutedEventArgs e)
         {
             System.Windows.Application.Current.Shutdown();
-        }
-
-        private void Editor_ContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-
         }
     }
 }
