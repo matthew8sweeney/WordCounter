@@ -140,24 +140,27 @@ namespace WordCounter
         /// <exception cref="ArgumentException">If the file extension is not supported</exception>
         private string DetectFileFormat(string filename)
         {
-            switch (Path.GetExtension(filename))
+            string ext = Path.GetExtension(filename);
+            switch (ext)
             {
                 case ".wcxaml":  // just my own name for this app's Xaml Packages
                 case ".xaml":
                     // adds debug text onto whatever is already there (from saving/loading methods)
-                    debugInfoDisplay.Text += " " + DataFormats.XamlPackage + " " + filename;
+                    debugInfoDisplay.Text += " " + DataFormats.XamlPackage + ": " + filename;
                     return DataFormats.XamlPackage;
 
                 case ".rtf":
-                    debugInfoDisplay.Text += " " + DataFormats.Rtf + " " + filename;
+                    debugInfoDisplay.Text += " " + DataFormats.Rtf + ": " + filename;
                     return DataFormats.Rtf;
 
                 case ".txt":
-                    debugInfoDisplay.Text += " " + DataFormats.Text + " " + filename;
+                    debugInfoDisplay.Text += " " + DataFormats.Text + ": " + filename;
                     return DataFormats.Text;
 
-                default:
-                    throw new ArgumentException("filename " + filename + " has unsupported extension");
+                default:  // treat unrecognized file formats as plain 
+                    //throw new ArgumentException("filename " + filename + " has unsupported extension");
+                    debugInfoDisplay.Text += " " + ext + " as plain text: " + filename;
+                    return DataFormats.Text;
             }
         }
     }
